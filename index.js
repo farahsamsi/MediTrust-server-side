@@ -31,12 +31,15 @@ async function run() {
 
     const cartCollection = client.db("MediTrustDB").collection("carts");
 
+    const userCollection = client.db("MediTrustDB").collection("users");
+
+    // ---------  medicines related API
     app.get("/medicines", async (req, res) => {
       const result = await medicineCollection.find().toArray();
       res.send(result);
     });
 
-    //   Carts collection
+    // ---------  Carts collection API
     app.get("/carts", async (req, res) => {
       const email = req.query.email;
       const query = { email: email };
@@ -48,6 +51,40 @@ async function run() {
       const cartItem = req.body;
       const result = await cartCollection.insertOne(cartItem);
       res.send(result);
+    });
+
+    //  ------- users related API
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+
+      // insert email if user doesn't exists
+      const query = { email: user.email };
+      const existingUser = await userCollection.findOne(query);
+      if (existingUser) {
+        return res.send({ message: "user already exists", insertedId: null });
+      }
+
+      const result = await userCollection.insertOne(user);
+      res.send(result);
+    });
+
+    app.get("/users", async (req, res) => {
+      const email = req.query.email;
+      const query = { email: email };
+      const result = await userCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    // checking admin api
+    app.get("/users/admin/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      let isAdmin = false;
+      if (user) {
+        isAdmin = user?.role === "admin";
+      }
+      res.send({ isAdmin });
     });
 
     // Send a ping to confirm a successful connection
