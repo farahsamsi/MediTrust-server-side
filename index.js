@@ -40,6 +40,12 @@ async function run() {
       res.send(result);
     });
 
+    app.post("/medicine", async (req, res) => {
+      const medicineItem = req.body;
+      const result = await medicineCollection.insertOne(medicineItem);
+      res.send(result);
+    });
+
     // ---------  Carts collection API
     app.get("/carts", async (req, res) => {
       const email = req.query.email;
