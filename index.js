@@ -28,10 +28,11 @@ async function run() {
     await client.connect();
 
     const medicineCollection = client.db("MediTrustDB").collection("medicines");
-
     const cartCollection = client.db("MediTrustDB").collection("carts");
-
     const userCollection = client.db("MediTrustDB").collection("users");
+    const categoryCollection = client
+      .db("MediTrustDB")
+      .collection("categories");
 
     // ---------  medicines related API
     app.get("/medicines", async (req, res) => {
@@ -50,6 +51,18 @@ async function run() {
     app.post("/carts", async (req, res) => {
       const cartItem = req.body;
       const result = await cartCollection.insertOne(cartItem);
+      res.send(result);
+    });
+
+    // -------- category related API
+    app.post("/category", async (req, res) => {
+      const categoryItem = req.body;
+      const result = await categoryCollection.insertOne(categoryItem);
+      res.send(result);
+    });
+
+    app.get("/categories", async (req, res) => {
+      const result = await categoryCollection.find().toArray();
       res.send(result);
     });
 
