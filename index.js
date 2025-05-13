@@ -74,10 +74,29 @@ async function run() {
       res.send(result);
     });
 
+    // api to get specific user using email as query
     app.get("/users", async (req, res) => {
       const email = req.query.email;
       const query = { email: email };
       const result = await userCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    // patch to update user role
+    app.patch("/user/:email", async (req, res) => {
+      const email = req.params.email;
+      const filter = { email: email };
+      let updatedDoc = {};
+      const update = req.body.role;
+      if (update) {
+        updatedDoc = {
+          $set: {
+            role: update,
+          },
+        };
+      }
+
+      const result = await userCollection.updateOne(filter, updatedDoc);
       res.send(result);
     });
 
