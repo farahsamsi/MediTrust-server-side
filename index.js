@@ -87,6 +87,18 @@ async function run() {
       res.send({ isAdmin });
     });
 
+    // checking seller api
+    app.get("/users/seller/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      let isSeller = false;
+      if (user) {
+        isSeller = user?.role === "seller";
+      }
+      res.send({ isSeller });
+    });
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
