@@ -46,6 +46,14 @@ async function run() {
       res.send(result);
     });
 
+    // api to get specific category medicines
+    app.get("/medicine/:category", async (req, res) => {
+      const category = req.params.category;
+      const query = { category: category };
+      const result = await medicineCollection.find(query).toArray();
+      res.send(result);
+    });
+
     // ---------  Carts collection API
     app.get("/carts", async (req, res) => {
       const email = req.query.email;
