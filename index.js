@@ -62,6 +62,7 @@ async function run() {
       res.send(result);
     });
 
+    // post new item in cart
     app.post("/carts", async (req, res) => {
       const cartItem = req.body;
       const { buyerEmail, medicineName } = cartItem;
@@ -115,6 +116,14 @@ async function run() {
       const id = req.params.id;
       const query = { _id: id };
       const result = await cartCollection.findOne(query);
+      res.send(result);
+    });
+
+    // delete specific item from cart
+    app.delete("/carts/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: id };
+      const result = await cartCollection.deleteOne(query);
       res.send(result);
     });
 
