@@ -78,13 +78,33 @@ async function run() {
       }
 
       const result = await cartCollection.insertOne(cartItem);
+
+      // Fetch all items of this user
+      const userCartItems = await cartCollection.find({ buyerEmail }).toArray();
+
+      // Calculate the subtotal
+      const subTotal = userCartItems.reduce(
+        (sum, item) => sum + item.totalPrice,
+        0
+      );
+
+      const updateSubTotal = {
+        $set: {
+          subTotal: subTotal,
+        },
+      };
+      const resultForSubTotal = await cartCollection.updateMany(
+        { buyerEmail },
+        updateSubTotal
+      );
+
       res.send(result);
     });
 
     // PATCH: Update quantity and total price
     app.patch("/carts/:id", async (req, res) => {
       const id = req.params.id;
-      const { type } = req.body; // "increase" or "decrease"
+      const { type, buyerEmail } = req.body; // type "increase" or "decrease"
       const query = { _id: id };
 
       const cartItem = await cartCollection.findOne(query);
@@ -109,7 +129,24 @@ async function run() {
 
       const result = await cartCollection.updateOne(query, updatedDoc);
 
-      res.send(result);
+      const filter = { buyerEmail: buyerEmail };
+      const cartItems = await cartCollection.find(filter).toArray();
+      const subTotal = cartItems.reduce(
+        (sum, item) => sum + item.totalPrice,
+        0
+      );
+
+      const updateSubTotal = {
+        $set: {
+          subTotal: subTotal,
+        },
+      };
+      const resultForSubTotal = await cartCollection.updateMany(
+        filter,
+        updateSubTotal
+      );
+
+      res.send(resultForSubTotal);
     });
 
     app.get("/carts/:id", async (req, res) => {
