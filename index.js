@@ -128,25 +128,7 @@ async function run() {
       };
 
       const result = await cartCollection.updateOne(query, updatedDoc);
-
-      const filter = { buyerEmail: buyerEmail };
-      const cartItems = await cartCollection.find(filter).toArray();
-      const subTotal = cartItems.reduce(
-        (sum, item) => sum + item.totalPrice,
-        0
-      );
-
-      const updateSubTotal = {
-        $set: {
-          subTotal: subTotal,
-        },
-      };
-      const resultForSubTotal = await cartCollection.updateMany(
-        filter,
-        updateSubTotal
-      );
-
-      res.send(resultForSubTotal);
+      res.send(result);
     });
 
     app.get("/carts/:id", async (req, res) => {
