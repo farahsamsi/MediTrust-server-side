@@ -146,6 +146,13 @@ async function run() {
       res.send(result);
     });
 
+    // remove all cart items for a specific user (by email)
+    app.delete("/carts", async (req, res) => {
+      const { buyerEmail } = req.query;
+      const result = await cartCollection.deleteMany({ buyerEmail });
+      res.send(result);
+    });
+
     // -------- category related API
     app.post("/category", async (req, res) => {
       const categoryItem = req.body;
