@@ -35,6 +35,7 @@ async function run() {
     const medicineCollection = client.db("MediTrustDB").collection("medicines");
     const cartCollection = client.db("MediTrustDB").collection("carts");
     const userCollection = client.db("MediTrustDB").collection("users");
+    const orderCollection = client.db("MediTrustDB").collection("orders");
     const categoryCollection = client
       .db("MediTrustDB")
       .collection("categories");
@@ -52,8 +53,8 @@ async function run() {
         total_amount: order?.totalBill, // dynamic
         currency: "BDT",
         tran_id: tran_id, // use unique tran_id for each api call
-        success_url: "http://localhost:3030/success",
-        fail_url: "http://localhost:3030/fail",
+        success_url: `http://localhost:5000/payment/success/${tran_id}`,
+        fail_url: `http://localhost:5000/payment/fail/${tran_id}`,
         cancel_url: "http://localhost:3030/cancel",
         ipn_url: "http://localhost:3030/ipn",
         shipping_method: "Courier",
@@ -80,12 +81,49 @@ async function run() {
       };
 
       const sslcz = new SSLCommerzPayment(store_id, store_passwd, is_live);
-      sslcz.init(data).then((apiResponse) => {
+      sslcz.init(data).then(async (apiResponse) => {
         // Redirect the user to payment gateway
         let GatewayPageURL = apiResponse.GatewayPageURL;
         res.send({ url: GatewayPageURL });
-        console.log("Redirecting to: ", GatewayPageURL);
+
+        const finalOrder = {
+          order,
+          transactionID: tran_id,
+          paymentStatus: "pending",
+        };
+        const result = await orderCollection.insertOne(finalOrder);
+
+        // console.log("Redirecting to: ", GatewayPageURL);
       });
+    });
+
+    // payment SUCCESS URL
+    app.post("/payment/success/:tranId", async (req, res) => {
+      console.log(req.params.tranId);
+      const result = await orderCollection.updateOne(
+        { transactionID: req.params.tranId },
+        {
+          $set: {
+            paymentStatus: "paid",
+          },
+        }
+      );
+      if (result.modifiedCount > 0) {
+        res.redirect(
+          `http://localhost:5173/payment/success/${req.params.tranId}`
+        );
+      }
+    });
+
+    // payment FAIL URL
+    app.post("/payment/fail/:tranId", async (req, res) => {
+      console.log(req.params.tranId);
+      const result = await orderCollection.deleteOne({
+        transactionID: req.params.tranId,
+      });
+      if (result.deletedCount > 0) {
+        res.redirect(`http://localhost:5173/payment/fail/${req.params.tranId}`);
+      }
     });
 
     // ---------  medicines related API
