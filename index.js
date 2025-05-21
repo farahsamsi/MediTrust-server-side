@@ -3,6 +3,11 @@ const app = express();
 const cors = require("cors");
 require("dotenv").config();
 
+const SSLCommerzPayment = require("sslcommerz-lts");
+const store_id = `${process.env.store_ID}`;
+const store_passwd = `${process.env.store_KEY}`;
+const is_live = false; //true for live, false for sandbox
+
 const port = process.env.PORT || 5000;
 
 // mongoDB connection
@@ -33,6 +38,55 @@ async function run() {
     const categoryCollection = client
       .db("MediTrustDB")
       .collection("categories");
+
+    // bill payment APIs
+    app.post("/order", async (req, res) => {
+      const order = req.body;
+      order.product_name = order.items
+        .map((item) => item.medicineName)
+        .join(", ");
+
+      const tran_id = new ObjectId().toString();
+
+      const data = {
+        total_amount: order?.totalBill, // dynamic
+        currency: "BDT",
+        tran_id: tran_id, // use unique tran_id for each api call
+        success_url: "http://localhost:3030/success",
+        fail_url: "http://localhost:3030/fail",
+        cancel_url: "http://localhost:3030/cancel",
+        ipn_url: "http://localhost:3030/ipn",
+        shipping_method: "Courier",
+        product_name: order.product_name,
+        product_category: "Medicine",
+        product_profile: "general",
+        cus_name: order?.buyerName,
+        cus_email: order?.buyerEmail,
+        cus_add1: order?.buyerAddress,
+        cus_add2: "Dhaka",
+        cus_city: "Dhaka",
+        cus_state: "Dhaka",
+        cus_postcode: order?.postCode,
+        cus_country: "Bangladesh",
+        cus_phone: order?.contactNumber,
+        cus_fax: "01711111111",
+        ship_name: "Customer Name",
+        ship_add1: "Dhaka",
+        ship_add2: "Dhaka",
+        ship_city: "Dhaka",
+        ship_state: "Dhaka",
+        ship_postcode: 1000,
+        ship_country: "Bangladesh",
+      };
+
+      const sslcz = new SSLCommerzPayment(store_id, store_passwd, is_live);
+      sslcz.init(data).then((apiResponse) => {
+        // Redirect the user to payment gateway
+        let GatewayPageURL = apiResponse.GatewayPageURL;
+        res.send({ url: GatewayPageURL });
+        console.log("Redirecting to: ", GatewayPageURL);
+      });
+    });
 
     // ---------  medicines related API
     app.get("/medicines", async (req, res) => {
