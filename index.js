@@ -54,7 +54,9 @@ async function run() {
         currency: "BDT",
         tran_id: tran_id, // use unique tran_id for each api call
         success_url: `http://localhost:5000/payment/success/${tran_id}`,
+        // success_url: `https://medi-trust-server-side.vercel.app/payment/success/${tran_id}`,
         fail_url: `http://localhost:5000/payment/fail/${tran_id}`,
+        // fail_url: `https://medi-trust-server-side.vercel.app/payment/fail/${tran_id}`,
         cancel_url: "http://localhost:3030/cancel",
         ipn_url: "http://localhost:3030/ipn",
         shipping_method: "Courier",
@@ -99,7 +101,6 @@ async function run() {
 
     // payment SUCCESS URL
     app.post("/payment/success/:tranId", async (req, res) => {
-      console.log(req.params.tranId);
       const result = await orderCollection.updateOne(
         { transactionID: req.params.tranId },
         {
@@ -111,19 +112,29 @@ async function run() {
       if (result.modifiedCount > 0) {
         res.redirect(
           `http://localhost:5173/payment/success/${req.params.tranId}`
+          // `https://medibazaar-94fd8.web.app/payment/success/${req.params.tranId}`
         );
       }
     });
 
     // payment FAIL URL
     app.post("/payment/fail/:tranId", async (req, res) => {
-      console.log(req.params.tranId);
       const result = await orderCollection.deleteOne({
         transactionID: req.params.tranId,
       });
       if (result.deletedCount > 0) {
         res.redirect(`http://localhost:5173/payment/fail/${req.params.tranId}`);
+        // res.redirect(
+        //   `https://medibazaar-94fd8.web.app/payment/fail/${req.params.tranId}`
+        // );
       }
+    });
+
+    // get buying details using transaction id
+    app.get("/order/:tranId", async (req, res) => {
+      const tranId = req.params.tranId;
+      const result = await orderCollection.findOne({ transactionID: tranId });
+      res.send(result);
     });
 
     // ---------  medicines related API
