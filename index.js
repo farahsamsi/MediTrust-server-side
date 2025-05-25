@@ -283,6 +283,14 @@ async function run() {
       res.send(result);
     });
 
+    // delete specific category
+    app.delete("/category/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await categoryCollection.deleteOne(query);
+      res.send(result);
+    });
+
     //  ------- users related API
     app.post("/users", async (req, res) => {
       const user = req.body;
