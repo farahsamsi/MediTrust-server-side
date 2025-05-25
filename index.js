@@ -146,6 +146,12 @@ async function run() {
       res.send(result);
     });
 
+    // get all order details
+    app.get("/allOrders", async (req, res) => {
+      const result = await orderCollection.find().toArray();
+      res.send(result);
+    });
+
     // ---------  medicines related API
     app.get("/medicines", async (req, res) => {
       const result = await medicineCollection.find().toArray();
