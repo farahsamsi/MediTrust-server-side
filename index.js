@@ -40,7 +40,7 @@ async function run() {
       .db("MediTrustDB")
       .collection("categories");
 
-    // bill payment APIs
+    // _________________bill payment APIs
     app.post("/order", async (req, res) => {
       const order = req.body;
       order.product_name = order.items
@@ -92,6 +92,7 @@ async function run() {
           order,
           transactionID: tran_id,
           paymentStatus: "pending",
+          transactionDate: new Date(),
         };
         const result = await orderCollection.insertOne(finalOrder);
 
@@ -134,6 +135,14 @@ async function run() {
     app.get("/order/:tranId", async (req, res) => {
       const tranId = req.params.tranId;
       const result = await orderCollection.findOne({ transactionID: tranId });
+      res.send(result);
+    });
+
+    // ----------- order related API
+    app.get("/order/user/:buyerEmail", async (req, res) => {
+      const buyerEmail = req.params.buyerEmail;
+      const query = { "order.buyerEmail": buyerEmail };
+      const result = await orderCollection.find(query).toArray();
       res.send(result);
     });
 
