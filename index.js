@@ -53,10 +53,10 @@ async function run() {
         total_amount: order?.totalBill, // dynamic
         currency: "BDT",
         tran_id: tran_id, // use unique tran_id for each api call
-        success_url: `http://localhost:5000/payment/success/${tran_id}`,
-        // success_url: `https://medi-trust-server-side.vercel.app/payment/success/${tran_id}`,
-        fail_url: `http://localhost:5000/payment/fail/${tran_id}`,
-        // fail_url: `https://medi-trust-server-side.vercel.app/payment/fail/${tran_id}`,
+        // success_url: `http://localhost:5000/payment/success/${tran_id}`,
+        success_url: `https://medi-trust-server-side.vercel.app/payment/success/${tran_id}`,
+        // fail_url: `http://localhost:5000/payment/fail/${tran_id}`,
+        fail_url: `https://medi-trust-server-side.vercel.app/payment/fail/${tran_id}`,
         cancel_url: "http://localhost:3030/cancel",
         ipn_url: "http://localhost:3030/ipn",
         shipping_method: "Courier",
@@ -149,6 +149,14 @@ async function run() {
     // get all order details
     app.get("/allOrders", async (req, res) => {
       const result = await orderCollection.find().toArray();
+      res.send(result);
+    });
+
+    // get orders of specific medicine
+    app.get("/orders/medicineName/:medicineName", async (req, res) => {
+      const medicineName = req.params.medicineName;
+      const filter = { "order.items.medicineName": medicineName };
+      const result = await orderCollection.find(filter).toArray();
       res.send(result);
     });
 
