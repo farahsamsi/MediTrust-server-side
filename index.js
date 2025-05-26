@@ -152,6 +152,20 @@ async function run() {
       res.send(result);
     });
 
+    // accept payment manually API
+    app.patch("/order/update/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          paymentStatus: "paid",
+        },
+      };
+
+      const result = await orderCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+    });
+
     // ---------  medicines related API
     app.get("/medicines", async (req, res) => {
       const result = await medicineCollection.find().toArray();
